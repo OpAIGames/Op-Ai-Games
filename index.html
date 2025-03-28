@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>AI Number Guesser</title> 
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .ad-placeholder {
+            background-color: #fff;
+            border: 2px dashed #ccc;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            color: #666;
+        }
+        .game-section {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        #history {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress {
+            height: 100%;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            background-color: #4CAF50; /* Initial green color */
+        }
+        .disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #attempts-counter {
+            color: #4CAF50;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        @keyframes winPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); color: #4CAF50; }
+            100% { transform: scale(1); }
+        }
+        @keyframes loseShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .win-animation {
+            animation: winPulse 0.5s ease;
+        }
+        .lose-animation {
+            animation: loseShake 0.4s ease;
+            color: #ff4444 !important;
+        }
+    </style> 
+ </head> 
+ <body> 
+  <div class="ad-placeholder">
+    Ad Space (728x90) 
+  </div> 
+  <div class="container"> 
+   <h1>🤖 AI Number Guesser</h1> 
+   <div class="game-section"> 
+    <p>I'm thinking of a number between 1 to 100...</p> 
+    <div id="attempts-counter">
+      Attempts left: 10 
+    </div> 
+    <div class="progress-bar"> 
+     <div class="progress" style="width: 100%"></div> 
+    </div> 
+    <input type="number" id="guessInput" min="1" max="100" placeholder="Enter your guess"> <button onclick="checkGuess()">Submit Guess</button> <button onclick="newGame()">New Game</button> 
+    <p id="message"></p> 
+    <div id="history"> <strong>Previous Guesses:</strong> 
+     <div id="guesses"></div> 
+    </div> 
+   </div> 
+  </div> 
+  <div class="ad-placeholder">
+    Ad Space (728x90) 
+  </div> 
+  <script>
+        let targetNumber;
+        let attempts = 0;
+        const maxAttempts = 10;
+        const progressBar = document.querySelector('.progress');
+        const attemptsCounter = document.getElementById('attempts-counter');
+
+        function startNewGame() {
+            targetNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            document.getElementById('guesses').innerHTML = '';
+            document.getElementById('message').textContent = '';
+            document.getElementById('guessInput').value = '';
+            document.getElementById('guessInput').disabled = false;
+            document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+            progressBar.style.width = '100%';
+            progressBar.style.backgroundColor = '#4CAF50'; // Reset to green
+            attemptsCounter.textContent = `Attempts left: ${maxAttempts}`;
+            attemptsCounter.style.color = '#4CAF50';
+        }
+
+        function updateProgress() {
+            const remaining = maxAttempts - attempts;
+            const percentage = (remaining / maxAttempts) * 100;
+            
+            // Calculate color transition from green to red
+            const greenValue = Math.floor(255 * (remaining / maxAttempts));
+            const redValue = 255 - greenValue;
+            progressBar.style.backgroundColor = `rgb(${redValue}, ${greenValue}, 0)`;
+            
+            progressBar.style.width = `${percentage}%`;
+            attemptsCounter.textContent = `Attempts left: ${remaining}`;
+            attemptsCounter.style.color = `rgb(${redValue}, ${greenValue}, 0)`;
+        }
+
+        function checkGuess() {
+            if (attempts >= maxAttempts) return;
+
+            const userGuess = parseInt(document.getElementById('guessInput').value);
+            const messageElement = document.getElementById('message');
+            
+            if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+                messageElement.textContent = "Please enter a valid number between 1 and 100";
+                return;
+            }
+
+            attempts++;
+            updateProgress();
+            
+            const history = document.getElementById('guesses');
+            const guessDiv = document.createElement('div');
+            
+            if (userGuess === targetNumber) {
+                messageElement.textContent = `🎉 Correct! You guessed it in ${attempts} attempts!`;
+                messageElement.classList.add('win-animation');
+                guessDiv.innerHTML = `${userGuess} - Correct!`;
+                guessDiv.style.color = 'green';
+                endGame();
+            } else {
+                const difference = Math.abs(targetNumber - userGuess);
+                let hint = '';
+                
+                if (difference <= 5) hint = "🔥 Very hot!";
+                else if (difference <= 15) hint = "☀️ Hot";
+                else if (difference <= 25) hint = "🌤 Warm";
+                else hint = "❄️ Cold";
+
+                guessDiv.innerHTML = `${userGuess} - ${hint}`;
+                messageElement.textContent = userGuess < targetNumber ? 
+                    "⬆️ Try a higher number" : "⬇️ Try a lower number";
+            }
+            
+            history.appendChild(guessDiv);
+            document.getElementById('guessInput').value = '';
+
+            if (attempts >= maxAttempts && userGuess !== targetNumber) {
+                messageElement.textContent = `Game Over! The number was ${targetNumber}`;
+                messageElement.classList.add('lose-animation');
+                endGame();
+            }
+        }
+
+        function endGame() {
+            document.getElementById('guessInput').disabled = true;
+            document.querySelector('button:not([onclick="newGame()"])').disabled = true;
+        }
+
+        function newGame() {
+            const messageElement = document.getElementById('message');
+            messageElement.classList.remove('win-animation', 'lose-animation');
+            startNewGame();
+            messageElement.textContent = "New game started! Good luck!";
+        }
+
+        // Start the game when page loads
+        startNewGame();
+    </script> 
+ 
+</body></html>
