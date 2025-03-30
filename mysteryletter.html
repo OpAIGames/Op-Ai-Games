@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Secret Letter Challenge</title> 
+  <style>
+        body {
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 150, 0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ff0000);
+            transition: width 0.5s ease;
+        }
+
+        input {
+            font-size: 1.5rem;
+            padding: 10px;
+            margin: 20px 0;
+            width: 60px;
+            text-align: center;
+            background: #444;
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        button {
+            background: #00ff88;
+            color: #1e1e1e;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        @keyframes win {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); color: #00ff88; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes lose {
+            0% { transform: translateY(0); }
+            25% { transform: translateY(-20px); }
+            50% { transform: translateY(0); }
+            75% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .result {
+            font-size: 2rem;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .win {
+            color: #00ff88;
+            animation: win 1s ease;
+            display: block;
+        }
+
+        .lose {
+            color: #ff0044;
+            animation: lose 0.5s ease;
+            display: block;
+        }
+
+        .message {
+            color: #00ff88;
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+
+        .past-guesses {
+            margin: 15px 0;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .past-guess {
+            background: #444;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .past-guess.correct {
+            background: #00ff88;
+            color: #1e1e1e;
+        }
+    </style> 
+ </head> 
+ <body> 
+  <div class="game-container"> 
+   <h1>🔐 Crack the Code: Find the Mystery Letter!</h1> 
+   <div class="progress-bar"> 
+    <div class="progress" style="width: 100%"></div> 
+   </div> 
+   <div class="message">
+    Only 5 tries to unlock the secret!
+   </div> 
+   <input type="text" maxlength="1" id="guessInput" placeholder="?"> 
+   <div class="past-guesses" id="pastGuesses"></div> 
+   <div class="button-group"> <button onclick="checkGuess()">Guess</button> <button onclick="newGame()">🔄 New Challenge</button> 
+   </div> 
+   <div id="result" class="result"></div> 
+  </div> 
+  <script>
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let targetLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+        let chances = 5;
+        let pastGuesses = [];
+        const progress = document.querySelector('.progress');
+        const resultDiv = document.getElementById('result');
+        const input = document.getElementById('guessInput');
+        const pastGuessesDiv = document.getElementById('pastGuesses');
+
+        function updateProgress() {
+            const widthPercentage = (chances / 5) * 100;
+            progress.style.width = `${widthPercentage}%`;
+        }
+
+        function vibrate() {
+            if (navigator.vibrate) {
+                navigator.vibrate(200);
+            }
+        }
+
+        function updatePastGuesses() {
+            pastGuessesDiv.innerHTML = pastGuesses.map(guess => 
+                `<div class="past-guess ${guess === targetLetter ? 'correct' : ''}">${guess}</div>`
+            ).join('');
+        }
+
+        function newGame() {
+            targetLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+            chances = 5;
+            pastGuesses = [];
+            progress.style.width = '100%';
+            progress.style.background = 'linear-gradient(90deg, #00ff00, #ff0000)';
+            resultDiv.textContent = '';
+            resultDiv.className = 'result';
+            pastGuessesDiv.innerHTML = '';
+            input.disabled = false;
+            input.value = '';
+            document.querySelector('.message').textContent = 'Only 5 tries to unlock the secret!';
+            document.querySelector('.message').style.color = '#00ff88';
+        }
+
+        function checkGuess() {
+            const userGuess = input.value.toUpperCase();
+            
+            if (!userGuess.match(/[A-Z]/)) {
+                alert('Please enter a valid letter A-Z');
+                return;
+            }
+
+            input.value = '';
+            pastGuesses.push(userGuess);
+            updatePastGuesses();
+
+            if (userGuess === targetLetter) {
+                resultDiv.textContent = '🎉 Genius! You Cracked It!';
+                resultDiv.className = 'result win';
+                progress.style.background = '#00ff88';
+                input.disabled = true;
+                return;
+            }
+
+            chances--;
+            updateProgress();
+            vibrate();
+
+            if (chances === 0) {
+                resultDiv.textContent = `😱 Mission Failed! The letter was ${targetLetter}`;
+                resultDiv.className = 'result lose';
+                input.disabled = true;
+            } else {
+                const message = document.querySelector('.message');
+                message.textContent = userGuess < targetLetter ? 
+                    '📈 Aim Higher!' : '📉 Go Lower!';
+                message.style.color = chances > 2 ? '#00ff88' : '#ff0044';
+            }
+        }
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkGuess();
+        });
+    </script> 
+ 
+</body></html>
